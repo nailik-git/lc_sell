@@ -49,7 +49,13 @@ array solve(array* a, int quota, bool print) {
     quota = sum - quota;
   }
 
-  for(uint64_t k = 0; k < ((uint64_t) 1) << a->count; k++) {
+  const uint64_t bound = a->count <= 64 ? ((uint64_t) 1) << (a->count - 1) : 0;
+  if(bound == 0) {
+    printf("\ntoo many items\n");
+    return r;
+  }
+
+  for(uint64_t k = 0; k < bound; k++) {
     sum = 0;
     for(int i = 0; i < a->count; i++) {
       if(k & ((uint64_t) 1) << i) {
