@@ -85,6 +85,8 @@ int main() {
   bool print = false;
   bool quit = false;
 
+  printf("welcome to lc_sell! type 'help' for a list of commands\n");
+
   while(true) {
     cli_fuer_julius(&quota, &print, &quit);
     if(quit) break;
