@@ -88,11 +88,16 @@ add <name> <value>:    add an item\n\
 delete <name> <value>: delete an item\n\
 quota <int>:           set quota\n\
 print:                 toggle printing\n\
-run:                   begin program\n");
+run:                   begin program\n\
+quit:                  quit program\n");
 }
 
 inline void list_items() {
   FILE* items = fopen("items", "r");
+  if(!items) {
+    printf("file either doesnt exist or you have insufficient permission\n");
+    return;
+  }
   while(true) {
     char buf[512];
     fgets(buf, 512, items);
@@ -131,7 +136,7 @@ inline void toggle_print(bool* print) {
   else printf("print is now off\n");
 }
 
-void cli_fuer_julius(int* quota, bool* print) {
+void cli_fuer_julius(int* quota, bool* print, bool* quit) {
   while(true) {
     printf("> ");
     char buf[512];
@@ -147,6 +152,7 @@ void cli_fuer_julius(int* quota, bool* print) {
     else if(strncmp(buf, "quota", 5) == 0) change_quota(quota, buf + 6);
     else if(strncmp(buf, "print", 5) == 0) toggle_print(print);
     else if(strncmp(buf, "run", 3) == 0) break;
+    else if(strncmp(buf, "quit", 4) == 0) {*quit = true; break;}
     else printf("unknown command:");
   }
 }
@@ -154,43 +160,49 @@ void cli_fuer_julius(int* quota, bool* print) {
 int main() {
   int quota = -1;
   bool print = false;
-  cli_fuer_julius(&quota, &print);
-
-  array a = {0};
-
-  FILE* input = fopen("items", "r");
+  bool quit = false;
 
   while(true) {
-    char buf[512];
-    fgets(buf, 512, input);
-    if(feof(input)) break;
-    // printf("%s", buf);
+    cli_fuer_julius(&quota, &print, &quit);
+    if(quit) break;
+    if(quota < 0) {printf("invalid quota\n"); continue;}
 
-    char* name = calloc(512, sizeof(char));
-    int value = 0;
-    sscanf(buf, "%s %d\n", name, &value);
-    // printf("%s: %d\n", name, value);
+    array a = {0};
 
-    item item = {.name = name, .value = value};
+    FILE* input = fopen("items", "r");
 
-    da_append(&a, item);
+    while(true) {
+      char buf[512];
+      fgets(buf, 512, input);
+      if(feof(input)) break;
+      // printf("%s", buf);
+
+      char* name = calloc(512, sizeof(char));
+      int value = 0;
+      sscanf(buf, "%s %d\n", name, &value);
+      // printf("%s: %d\n", name, value);
+
+      item item = {.name = name, .value = value};
+
+      da_append(&a, item);
+    }
+    fclose(input);
+
+    qsort(a.items, a.count, sizeof(item), item_compare);
+
+
+    array r = solve(&a, quota, print);
+
+    if(r.count > 0) printf("\n");
+    for(int i = 0; i < r.count; i++) {
+      printf("%s: '%d\n", r.items[i].name, r.items[i].value);
+    }
+    da_free(r);
+
+    for(int i = 0; i < a.count; i++) {
+      free(a.items[i].name);
+    }
+    da_free(a);
   }
-  fclose(input);
-
-  qsort(a.items, a.count, sizeof(item), item_compare);
-
-
-  array r = solve(&a, quota, print);
-
-  if(r.count > 0) printf("\n");
-  for(int i = 0; i < r.count; i++) {
-    printf("%s: '%d\n", r.items[i].name, r.items[i].value);
-  }
-  da_free(r);
-
-  for(int i = 0; i < a.count; i++) {
-    free(a.items[i].name);
-  }
-  da_free(a);
   return 0;
 }
