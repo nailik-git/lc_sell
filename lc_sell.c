@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #define DA_INIT_CAP 256
 
@@ -78,8 +79,83 @@ int item_compare(const void* a, const void* b) {
   return ((item*) a)->value < ((item*) b)->value;
 }
 
-int main(int argc, char* argv[]) {
-  if(argc < 2) return -1;
+inline void print_usage() {
+  printf("\
+help:                  see this message\n\
+list:                  list all items\n\
+new:                   make new item file\n\
+add <name> <value>:    add an item\n\
+delete <name> <value>: delete an item\n\
+quota <int>:           set quota\n\
+print:                 toggle printing\n\
+run:                   begin program\n");
+}
+
+inline void list_items() {
+  FILE* items = fopen("items", "r");
+  while(true) {
+    char buf[512];
+    fgets(buf, 512, items);
+    if(feof(items)) break;
+    printf("%s", buf);
+  }
+  fclose(items);
+}
+
+inline void new_items() {
+  FILE* items = fopen("items", "w");
+  fprintf(items, "");
+  fclose(items);
+}
+
+inline void add_item(char buf[]) {
+  FILE* items = fopen("items", "a");
+  fprintf(items, "%s\n", buf);
+  fclose(items);
+}
+
+inline void delete_item(char buf[]) {
+  char cmd[1024];
+  sprintf(cmd, "cat items | grep -v \"%s\" > items.new", buf);
+  system(cmd);
+  system("mv items.new items");
+}
+
+inline void change_quota(int* quota, char buf[]) {
+  sscanf(buf, "%d", quota);
+}
+
+inline void toggle_print(bool* print) {
+  *print = !*print;
+  if(print) printf("print is now on\n");
+  else printf("print is now off\n");
+}
+
+void cli_fuer_julius(int* quota, bool* print) {
+  while(true) {
+    printf("> ");
+    char buf[512];
+    fgets(buf, 511, stdin);
+    for(int i = 0; i < 511; i++) {
+      if(buf[i] == '\n') buf[i] = 0;
+    }
+    if(strncmp(buf, "help", 4) == 0) print_usage();
+    else if(strncmp(buf, "list", 4) == 0) list_items();
+    else if(strncmp(buf, "new", 3) == 0) new_items();
+    else if(strncmp(buf, "add", 3) == 0) add_item(buf + 4);
+    else if(strncmp(buf, "delete", 6) == 0) delete_item(buf + 7);
+    else if(strncmp(buf, "quota", 5) == 0) change_quota(quota, buf + 6);
+    else if(strncmp(buf, "print", 5) == 0) toggle_print(print);
+    else if(strncmp(buf, "run", 3) == 0) break;
+    else printf("unknown command:");
+  }
+}
+
+int main() {
+  int quota = -1;
+  bool print = false;
+  cli_fuer_julius(&quota, &print);
+
   array a = {0};
 
   FILE* input = fopen("items", "r");
@@ -103,13 +179,6 @@ int main(int argc, char* argv[]) {
 
   qsort(a.items, a.count, sizeof(item), item_compare);
 
-  int quota;
-  sscanf(argv[1], "%d", &quota);
-  // printf("%d\n", quota);
-
-  bool print;
-  if(argc > 2 && (argv[2][0] == 'y' || argv[2][0] == 'Y')) print = true;
-  else print = false;
 
   array r = solve(&a, quota, print);
 
