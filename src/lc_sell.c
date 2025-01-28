@@ -54,7 +54,7 @@ array solve(array* a, int quota, bool print) {
     return r;
   }
 
-  for(uint64_t c = bound; c >= 0; c--) {
+  for(uint64_t c = bound; c > 0; c--) {
     for(int i = 0; i < a->count; i++) {
       if(c & ((uint64_t) 1) << (a->count - 1 - i)) {
         if(a->items[i].value > quota) {
@@ -127,7 +127,8 @@ int main() {
 
     array r = solve(&a, quota, print);
 
-    if(r.count > 0) printf("\n");
+    printf("\n");
+    if(r.count == 0)  printf("no arrangement found\n");
     for(int i = 0; i < r.count; i++) {
       printf("%s: '%d\n", r.items[i].name, r.items[i].value);
     }
