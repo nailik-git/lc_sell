@@ -30,45 +30,42 @@ typedef struct array {
   item* items;
   int count;
   int capacity;
+  int sum;
 } array;
 
 array solve(array* a, int quota, bool print) {
   array r = {0};
 
-  int sum = 0;
-  for(int i = 0; i < a->count; i++) {
-    sum += a->items[i].value;
-  }
-  printf("sum of all items: '%d\n", sum);
-  if(sum < quota) {
+  printf("sum of all items: '%d\n", a->sum);
+  if(a->sum < quota) {
     printf("\nquota not possible\n");
     return r;
-  } else if(sum == quota) {
+  } else if(a->sum == quota) {
     printf("\nall items\n");
     return r;
-  } else if(sum / 2 < quota) {
+  } else if(a->sum / 2 < quota) {
     printf("\nquota more than half of sum, now searching which items not to put in\n");
-    quota = sum - quota;
+    quota = a->sum - quota;
   }
 
-  const uint64_t bound = a->count <= 64 ? ((uint64_t) 1) << (a->count - 1) : 0;
+  const uint64_t bound = a->count ? (a->count < 64 ? (((uint64_t) 1) << (a->count)) - 1 : UINT64_MAX) : 0;
   if(bound == 0) {
     printf("\ntoo many items\n");
     return r;
   }
 
-  for(uint64_t k = 0; k < bound; k++) {
-    sum = 0;
+  for(uint64_t k = 0; k <= bound; k++) {
     for(int i = 0; i < a->count; i++) {
       if(k & ((uint64_t) 1) << i) {
         da_append(&r, a->items[i]);
-        sum += a->items[i].value;
+        r.sum += a->items[i].value;
       }
     }
 
-    if(sum != quota) {
-      if(print) printf("found arrangement for: '%d\n", sum);
+    if(r.sum != quota) {
+      if(print) printf("found arrangement for: '%d\n", r.sum);
       r.count = 0;
+      r.sum = 0;
     } else {
       break;
     }
@@ -110,6 +107,7 @@ int main() {
       item item = {.name = name, .value = value};
 
       da_append(&a, item);
+      a.sum += value;
     }
     fclose(input);
 
