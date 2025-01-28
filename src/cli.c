@@ -74,6 +74,6 @@ void cli_fuer_julius(int* quota, bool* print, bool* quit) {
     else if(strncmp(buf, "print", 5) == 0) toggle_print(print);
     else if(strncmp(buf, "run", 3) == 0) break;
     else if(strncmp(buf, "quit", 4) == 0) {*quit = true; break;}
-    else printf("unknown command:");
+    else printf("unknown command\n");
   }
 }
