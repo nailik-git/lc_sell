@@ -6,7 +6,7 @@ HEADERS := src/cli.h
 all: dir build/lc_sell
 
 build/lc_sell: build/lc_sell.o build/cli.o
-	clang $(LDFLAGS) -o $@ $?
+	clang $(LDFLAGS) -o $@ build/lc_sell.o build/cli.o
 
 build/lc_sell.o: src/lc_sell.c $(HEADERS)
 	clang -c $(CFLAGS) -o $@ $<
