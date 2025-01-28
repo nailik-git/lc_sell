@@ -72,7 +72,6 @@ array solve(array* a, int quota, bool print) {
 
         l_break:
           c -= pos; // remove element from bitmask
-          printf("%lu\n", c);
           break;
       }
     }
