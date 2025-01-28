@@ -59,6 +59,7 @@ array solve(array* a, int quota, bool print) {
       if(k & ((uint64_t) 1) << i) {
         da_append(&r, a->items[i]);
         r.sum += a->items[i].value;
+        if(r.sum > quota) break;
       }
     }
 
