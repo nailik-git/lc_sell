@@ -135,8 +135,8 @@ int main() {
 
     array r = solve(&a, quota, print);
 
-    printf("\n");
-    if(r.count == 0)  printf("no arrangement found\n");
+    if(r.count == 0 && quota != a.sum)  printf("no arrangement found\n");
+    if(r.count != 0) printf("\n");
     for(int i = 0; i < r.count; i++) {
       printf("%s: '%d\n", r.items[i].name, r.items[i].value);
     }
