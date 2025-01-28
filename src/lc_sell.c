@@ -33,18 +33,18 @@ typedef struct array {
   int sum;
 } array;
 
-array solve(array* a, int quota, bool print) {
+array solve(array* a, int quota, bool print, bool info) {
   array r = {0};
 
-  printf("sum of all items: '%d\n", a->sum);
+  if(info) printf("sum of all items: '%d\n", a->sum);
   if(a->sum < quota) {
     printf("\nquota not possible\n");
     return r;
   } else if(a->sum == quota) {
-    printf("\nall items\n");
+    if(info) printf("\nall items\n");
     return r;
   } else if(a->sum / 2 < quota) {
-    printf("\nquota more than half of sum, now searching which items not to put in\n");
+    if(info) printf("\nquota more than half of sum, now searching which items not to put in\n");
     quota = a->sum - quota;
   }
 
@@ -133,10 +133,27 @@ int main() {
     //   printf("%s: '%d\n", a.items[i].name, a.items[i].value);
     // }
 
-    array r = solve(&a, quota, print);
+    array r = solve(&a, quota, print, true);
 
-    if(r.count == 0 && quota != a.sum)  printf("no arrangement found\n");
+    int oversell = 0;
+    if(r.count == 0 && quota < a.sum) {
+      printf("no arrangement found, looking for oversell\n");
+
+      for(oversell = 1; quota + oversell <= a.sum; oversell++) {
+        if(quota + oversell == a.sum) {
+          printf("\nall items\n");
+          break;
+        }
+
+        r = solve(&a, quota + oversell, print, false);
+
+        if(r.count != 0) break;
+      }
+    }
+
+    if(oversell) printf("\noversell: '%d\n", oversell);
     if(r.count != 0) printf("\n");
+
     for(int i = 0; i < r.count; i++) {
       printf("%s: '%d\n", r.items[i].name, r.items[i].value);
     }
