@@ -53,7 +53,7 @@ static inline void change_quota(int* quota, char buf[]) {
 
 static inline void toggle_print(bool* print) {
   *print = !*print;
-  if(print) printf("print is now on\n");
+  if(*print) printf("print is now on\n");
   else printf("print is now off\n");
 }
 
