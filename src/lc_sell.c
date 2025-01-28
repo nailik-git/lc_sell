@@ -54,12 +54,19 @@ array solve(array* a, int quota, bool print) {
     return r;
   }
 
-  for(uint64_t k = 0; k <= bound; k++) {
+  for(uint64_t c = bound; c >= 0; c--) {
     for(int i = 0; i < a->count; i++) {
-      if(k & ((uint64_t) 1) << i) {
+      if(c & ((uint64_t) 1) << (a->count - 1 - i)) {
+        if(a->items[i].value > quota) {
+          c >>= 1;
+          break;
+        }
         da_append(&r, a->items[i]);
         r.sum += a->items[i].value;
-        if(r.sum > quota) break;
+        if(r.sum >= quota) {
+          c -= ((uint64_t) 1) << (a->count - 1 - i);
+          break;
+        }
       }
     }
 
@@ -114,6 +121,9 @@ int main() {
 
     qsort(a.items, a.count, sizeof(item), item_compare);
 
+    // for(int i = 0; i < a.count; i++) {
+    //   printf("%s: '%d\n", a.items[i].name, a.items[i].value);
+    // }
 
     array r = solve(&a, quota, print);
 
