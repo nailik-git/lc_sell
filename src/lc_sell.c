@@ -93,6 +93,32 @@ int item_compare(const void* a, const void* b) {
   return ((item*) a)->value < ((item*) b)->value;
 }
 
+array parser() {
+  array a = {0};
+
+  FILE* input = fopen("items", "r");
+
+  while(true) {
+    char buf[512];
+    fgets(buf, 512, input);
+    if(feof(input)) break;
+    // printf("%s", buf);
+
+    char* name = calloc(512, sizeof(char));
+    int value = 0;
+    sscanf(buf, "%s %d\n", name, &value);
+    // printf("%s: %d\n", name, value);
+
+    item item = {.name = name, .value = value};
+
+    da_append(&a, item);
+    a.sum += value;
+  }
+  fclose(input);
+
+  return a;
+}
+
 int main() {
   int quota = -1;
   bool print = false;
@@ -105,27 +131,7 @@ int main() {
     if(quit) break;
     if(quota < 0) {printf("invalid quota\n"); continue;}
 
-    array a = {0};
-
-    FILE* input = fopen("items", "r");
-
-    while(true) {
-      char buf[512];
-      fgets(buf, 512, input);
-      if(feof(input)) break;
-      // printf("%s", buf);
-
-      char* name = calloc(512, sizeof(char));
-      int value = 0;
-      sscanf(buf, "%s %d\n", name, &value);
-      // printf("%s: %d\n", name, value);
-
-      item item = {.name = name, .value = value};
-
-      da_append(&a, item);
-      a.sum += value;
-    }
-    fclose(input);
+    array a = parser();
 
     qsort(a.items, a.count, sizeof(item), item_compare);
 
