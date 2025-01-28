@@ -48,27 +48,36 @@ array solve(array* a, int quota, bool print) {
     quota = a->sum - quota;
   }
 
+  // abomination because of integer overflow
   const uint64_t bound = a->count ? (a->count < 64 ? (((uint64_t) 1) << (a->count)) - 1 : UINT64_MAX) : 0;
   if(bound == 0) {
-    printf("\ntoo many items\n");
+    printf("\ninvalid number of items\n");
     return r;
   }
 
   for(uint64_t c = bound; c > 0; c--) {
     for(int i = 0; i < a->count; i++) {
-      if(c & ((uint64_t) 1) << (a->count - 1 - i)) {
-        if(a->items[i].value > quota) {
-          c >>= 1;
-          break;
-        }
+
+      const uint64_t pos = ((uint64_t) 1) << (a->count - 1 - i); // position of i'th element in bitmask
+
+      if(c & pos) { // if element is in bitmask
+        if(a->items[i].value > quota) goto l_break;
+
         da_append(&r, a->items[i]);
         r.sum += a->items[i].value;
-        if(r.sum >= quota) {
-          c -= ((uint64_t) 1) << (a->count - 1 - i);
+
+        if(r.sum >= quota) goto l_break;
+
+        continue; // continue, so that l_break is unreachable
+
+        l_break:
+          c -= pos; // remove element from bitmask
+          printf("%lu\n", c);
           break;
-        }
       }
     }
+
+    if(c == 0) break; // if not done there may be an infinite loop
 
     if(r.sum != quota) {
       if(print) printf("found arrangement for: '%d\n", r.sum);
