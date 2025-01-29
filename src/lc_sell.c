@@ -1,10 +1,10 @@
+#include "cli.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "cli.h"
 
 #define DA_INIT_CAP 256
 
@@ -123,11 +123,12 @@ int main() {
   int quota = -1;
   bool print = false;
   bool quit = false;
+  bool sell = false;
 
   printf("welcome to lc_sell! type 'help' for a list of commands\n");
 
   while(true) {
-    cli_fuer_julius(&quota, &print, &quit);
+    cli_fuer_julius(&quota, &print, &quit, &sell);
     if(quit) break;
     if(quota < 0) {printf("invalid quota\n"); continue;}
 
@@ -162,6 +163,11 @@ int main() {
 
     for(int i = 0; i < r.count; i++) {
       printf("%s: '%d\n", r.items[i].name, r.items[i].value);
+      if(sell) {
+        char buf[512];
+        snprintf(buf, 512, "%s %d", r.items[i].name, r.items[i].value);
+        delete_item(buf);
+      }
     }
     da_free(r);
 

@@ -1,4 +1,7 @@
 #include "cli.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static inline void print_usage() {
   printf("\
@@ -40,10 +43,32 @@ static inline void add_item(char buf[]) {
   fclose(items);
 }
 
-static inline void delete_item(char buf[]) {
-  char cmd[1024];
-  sprintf(cmd, "cat items | grep -v \"%s\" > items.new", buf);
-  system(cmd);
+inline void delete_item(char buf[]) {
+  FILE* input = fopen("items", "r");
+  if(!input) {
+    printf("file either doesnt exist or you have insufficient permission\n");
+    return;
+  }
+  FILE* output = fopen("items.new", "w");
+
+  int buf_len = strlen(buf);
+  bool w = true;
+  while(true) {
+    char line[512];
+    fgets(line, 511, input);
+
+    if(feof(input)) break;
+
+    if(strncmp(buf, line, buf_len) == 0) {
+      if(w) w = false;
+      else fprintf(output, "%s", line);
+    } else {
+      fprintf(output, "%s", line);
+    }
+  }
+
+  fclose(input);
+  fclose(output);
   system("mv items.new items");
 }
 
@@ -57,7 +82,13 @@ static inline void toggle_print(bool* print) {
   else printf("print is now off\n");
 }
 
-void cli_fuer_julius(int* quota, bool* print, bool* quit) {
+static inline void toggle_sell(bool* sell) {
+  *sell = !*sell;
+  if(*sell) printf("selling is now on\n");
+  else printf("selling is now off\n");
+}
+
+void cli_fuer_julius(int* quota, bool* print, bool* quit, bool* sell) {
   while(true) {
     printf("> ");
     char buf[512];
@@ -72,6 +103,7 @@ void cli_fuer_julius(int* quota, bool* print, bool* quit) {
     else if(strncmp(buf, "delete", 6) == 0) delete_item(buf + 7);
     else if(strncmp(buf, "quota", 5) == 0) change_quota(quota, buf + 6);
     else if(strncmp(buf, "print", 5) == 0) toggle_print(print);
+    else if(strncmp(buf, "sell", 4) == 0) toggle_sell(sell); 
     else if(strncmp(buf, "run", 3) == 0) break;
     else if(strncmp(buf, "quit", 4) == 0) {*quit = true; break;}
     else printf("unknown command\n");
