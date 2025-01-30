@@ -50,7 +50,7 @@ array solve(array* a, int quota, bool print, bool info) {
 
   // abomination because of integer overflow
   const uint64_t bound = a->count ? (a->count < 64 ? (((uint64_t) 1) << (a->count)) - 1 : UINT64_MAX) : 0;
-  if(bound == 0) {
+  if(a->count > 64 || bound == 0) {
     printf("\ninvalid number of items\n");
     return r;
   }
@@ -63,15 +63,18 @@ array solve(array* a, int quota, bool print, bool info) {
       if(c & pos) { // if element is in bitmask
         if(a->items[i].value > quota) goto l_break;
 
-        da_append(&r, a->items[i]);
         r.sum += a->items[i].value;
+        if(r.sum > quota) goto l_break;
 
-        if(r.sum >= quota) goto l_break;
+        da_append(&r, a->items[i]);
+
+        if(r.sum == quota) break;
 
         continue; // continue, so that l_break is unreachable
 
         l_break:
           c -= pos; // remove element from bitmask
+          c++;
           break;
       }
     }
@@ -144,11 +147,10 @@ int main() {
 
     int oversell = 0;
     if(r.count == 0 && quota < a.sum) {
-      printf("no arrangement found, looking for oversell\n");
+      printf("\nno arrangement found, looking for oversell\n");
 
       for(oversell = 1; quota + oversell <= a.sum; oversell++) {
         if(quota + oversell == a.sum) {
-          printf("\nall items\n");
           break;
         }
 
@@ -158,22 +160,39 @@ int main() {
       }
     }
 
-    if(oversell) printf("\noversell: '%d\n", oversell);
+    if(oversell) {
+      if(a.sum / 2 >= quota && a.sum / 2 < quota + oversell)
+        printf("quota more than half of sum, now searching which items not to put in\n");
+      printf("\noversell: '%u\n", oversell);
+      if(quota + oversell == a.sum) 
+        printf("\nno items\n");
+    }
     if(r.count != 0) printf("\n");
 
-    for(int i = 0; i < r.count; i++) {
-      printf("%s: '%d\n", r.items[i].name, r.items[i].value);
-      if(sell) {
+    for(uint32_t i = 0; i < r.count; i++) {
+      printf("%-25s '%u\n", r.items[i].name, r.items[i].value);
+      if(sell && a.sum / 2 >= quota + oversell) {
         char buf[512];
-        snprintf(buf, 512, "%s %d", r.items[i].name, r.items[i].value);
+        snprintf(buf, 512, "%s %u", r.items[i].name, r.items[i].value);
         delete_item(buf);
       }
     }
-    da_free(r);
 
-    for(int i = 0; i < a.count; i++) {
+    for(uint32_t i = 0; i < a.count; i++) {
+      if(sell && a.sum / 2 < quota + oversell) {
+        for(uint32_t j = 0; j < r.count; j++) {
+          if(a.items[i].name == r.items[j].name && a.items[i].value == r.items[j].value)
+            goto l_continue;
+        }
+        char buf[512];
+        snprintf(buf, 512, "%s %u", a.items[i].name, a.items[i].value);
+        delete_item(buf);
+      }
+      l_continue:
       free(a.items[i].name);
     }
+
+    da_free(r);
     da_free(a);
   }
   return 0;

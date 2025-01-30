@@ -10,7 +10,7 @@ list:                  list all items\n\
 new:                   make new item file\n\
 add <name> <value>:    add an item\n\
 delete <name> <value>: delete an item\n\
-quota <int>:           set quota\n\
+quota [int]:           show/set quota\n\
 print:                 toggle printing\n\
 run:                   begin program\n\
 quit:                  quit program\n");
