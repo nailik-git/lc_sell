@@ -81,8 +81,8 @@ array solve(array* a, int quota, bool print, bool info) {
 
     if(c == 0) break; // if not done there may be an infinite loop
 
+    if(print) printf("found arrangement for: '%d\n", r.sum);
     if(r.sum != quota) {
-      if(print) printf("found arrangement for: '%d\n", r.sum);
       r.count = 0;
       r.sum = 0;
     } else {
@@ -99,7 +99,7 @@ int item_compare(const void* a, const void* b) {
 array parser() {
   array a = {0};
 
-  FILE* input = fopen("items", "r");
+  FILE* input = fopen(items_path, "r");
 
   while(true) {
     char buf[512];
@@ -169,7 +169,7 @@ int main() {
     }
     if(r.count != 0) printf("\n");
 
-    for(uint32_t i = 0; i < r.count; i++) {
+    for(int i = 0; i < r.count; i++) {
       printf("%-25s '%u\n", r.items[i].name, r.items[i].value);
       if(sell && a.sum / 2 >= quota + oversell) {
         char buf[512];
@@ -178,9 +178,9 @@ int main() {
       }
     }
 
-    for(uint32_t i = 0; i < a.count; i++) {
+    for(int i = 0; i < a.count; i++) {
       if(sell && a.sum / 2 < quota + oversell) {
-        for(uint32_t j = 0; j < r.count; j++) {
+        for(int j = 0; j < r.count; j++) {
           if(a.items[i].name == r.items[j].name && a.items[i].value == r.items[j].value)
             goto l_continue;
         }
